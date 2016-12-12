@@ -48,9 +48,22 @@ module.exports = {
           stack.push(b);
         }
 
-        while(c.length > 0){
+        if(c.length == 1){
           t.children.push(c.pop());
+        } else {
+          var t2 = new tree();
+          t2.type = "Cat";
+          t2.value = "Cat";
+
+          while(c.length > 0){
+            t2.children.push(c.pop());
+          }
+          t.children.push(t2);
         }
+        var t3 = new tree();
+        t3.type = "Cat";
+        t3.value = "Cat";
+        t.children.push(t3);
 
         stack.push(t);
 
@@ -59,8 +72,15 @@ module.exports = {
       states: [States.Head, States.Chars, States.Special, States.GroupClose, States.CharSetClose, States.Wildcard]
     },
     {
-      re:"\\|", // Or within an Or?  Just add the next to the first Or.
+      re:"\\|", // Or within an Or?  Just add the next to the first Or as a child.
       op: function(a, stack){
+        var t = stack.pop();
+        var t2 = new tree();
+        t2.type = "Cat";
+        t2.value = "Cat";
+        t.children.push(t2);
+        stack.push(t);
+
         return States.Or;
       },
       states: [States.Or, States.OrGroupClose, States.OrChars, States.OrCharSetClose, States.OrTail, States.OrSpecial, States.OrWildcard]
@@ -107,7 +127,7 @@ module.exports = {
             throw "Unbalanced Brackets!";
           }
 
-          if(b.type == "Open" || b.type == "Group"){
+          if(b.type == "GroupOpen" || b.type == "Group"){
             throw "Syntax Error: No groups inside CharSets";
           }
         }
@@ -151,7 +171,7 @@ module.exports = {
           throw "Unbalanced Parens!";
         }
 
-        while(b.type != "Open"){
+        while(b.type != "GroupOpen"){
           t.children.push(b);
           b = stack.pop();
 
@@ -159,7 +179,7 @@ module.exports = {
             throw "Unbalanced Parens!";
           }
         }
-
+        t.children.reverse();
         stack.push(t);
         return States.GroupClose;
       },
@@ -189,7 +209,8 @@ module.exports = {
               throw "Unbalanced Parens!";
             }
           }
-          t2.children.push(t);
+          t.children.reverse();
+          t2.children[1].push(t);
           stack.push(t2);
           return States.OrGroupClose;
 
@@ -212,7 +233,7 @@ module.exports = {
               throw "Unbalanced Parens!";
             }
           }
-
+          t.children.reverse();
           stack.push(t);
           return States.GroupClose;
         }
@@ -237,14 +258,18 @@ module.exports = {
         var t = new tree();
         t.type = "+";
         t.value = "+";
+
         var t2 = stack.pop();
-        var t3 = stack.pop();
-        t.children.push(t2.children.pop());
+        var t3 = t2.children.pop();
+        var t4 = t3.children.pop();
+        t.children.push(t4);
         t3.children.push(t);
-        stack.push(t3);
+        t2.children.push(t3);
+        stack.push(t2);
+
         return States.Or;
       },
-      states: [States.OrCharSetClose, States.OrChar, States.OrSpecial, States.OrGroupClose, States.OrWildcard]
+      states: [States.OrCharSetClose, States.OrChars, States.OrSpecial, States.OrGroupClose, States.OrWildcard]
     },
     {
       re: "\\*",
@@ -264,11 +289,15 @@ module.exports = {
         var t = new tree();
         t.type = "*";
         t.value = "*";
+
         var t2 = stack.pop();
-        var t3 = stack.pop();
-        t.children.push(t2.children.pop());
+        var t3 = t2.children.pop();
+        var t4 = t3.children.pop();
+        t.children.push(t4);
         t3.children.push(t);
-        stack.push(t3);
+        t2.children.push(t3);
+        stack.push(t2);
+
         return States.Or;
       },
       states: [States.OrCharSetClose, States.OrChar, States.OrSpecial, States.OrGroupClose, States.OrWildcard]
@@ -291,11 +320,15 @@ module.exports = {
         var t = new tree();
         t.type = "?";
         t.value = "?";
+
         var t2 = stack.pop();
-        var t3 = stack.pop();
-        t.children.push(t2.children.pop());
+        var t3 = t2.children.pop();
+        var t4 = t3.children.pop();
+        t.children.push(t4);
         t3.children.push(t);
-        stack.push(t3);
+        t2.children.push(t3);
+        stack.push(t2);
+
         return States.Or;
       },
       states: [States.OrCharSetClose, States.OrChar, States.OrSpecial, States.OrGroupClose, States.OrWildcard]
@@ -389,7 +422,9 @@ module.exports = {
         t.type = "Char";
         t.value = a[0];
         var t2 = stack.pop();
-        t2.children.push(t);
+        var t3 = t2.children.pop();
+        t3.children.push(t)
+        t2.children.push(t3);
         stack.push(t2);
         return States.OrChars;
       },
