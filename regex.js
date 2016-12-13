@@ -1,6 +1,6 @@
 var Enum = require('enum');
 var tree = require('./trees.js').tree;
-var States = new Enum(["Begin", "Start", "Chars", "OrChars", "Special", "OrSpecial", "Wildcard", "OrWildcard", "GroupOpen", "GroupClose", "OrGroupOpen", "OrGroupClose", "CharSetOpen", "CharSetClose", "OrCharSetOpen", "OrCharSetClose", "Quant", "OrQuant", "Or", "Head", "Tail", "OrTail", "End"]);
+var States = new Enum(["Begin", "Start", "Chars", "OrChars", "Special", "OrSpecial", "Wildcard", "OrWildcard", "GroupOpen", "GroupClose", "OrGroupOpen", "OrGroupClose", "CharSetOpen", "CharSetClose", "OrCharSetOpen", "OrCharSetClose", "Quant", "OrQuant", "Or", "Head", "OrHead", "Tail", "OrTail", "End"]);
 
 module.exports = {
   start: States.Begin,
@@ -29,7 +29,7 @@ module.exports = {
 
         return States.End;
       },
-      states: [States.Start, States.Chars, States.Special, States.Group, States.CharSet, States.Or, States.Tail, States.OrTail, States.Wildcard, States.Quant]
+      states: [States.Start, States.Chars, States.OrChars, States.Special, States.OrSpecial, States.GroupClose, States.OrGroupClose, States.CharSetClose, States.OrCharSetClose, States.Or, States.Tail, States.OrTail, States.Wildcard, States.Quant, States.OrQuant]
     },
     {
       re:"\\|", // Anything found while in States.Or state is added as a child unless it closes containing group
@@ -44,7 +44,7 @@ module.exports = {
           c.push(b);
           b = stack.pop();
         }
-        if(b.type == "GroupOpen"){
+        if(b && b.type == "GroupOpen"){
           stack.push(b);
         }
 
@@ -83,7 +83,7 @@ module.exports = {
 
         return States.Or;
       },
-      states: [States.Or, States.OrGroupClose, States.OrChars, States.OrCharSetClose, States.OrTail, States.OrSpecial, States.OrWildcard, States.OrQuant]
+      states: [States.OrHead, States.OrGroupClose, States.OrChars, States.OrCharSetClose, States.OrTail, States.OrSpecial, States.OrWildcard, States.OrQuant]
     },
     {
       re:"\\[",
@@ -138,6 +138,36 @@ module.exports = {
       states: [States.Chars, States.Special]
     },
     {
+      re:"\\]",
+      op: function(a, stack){
+        var t = new tree();
+        t.type = "CharSet";
+        t.value = "CharSet";
+
+        var b = stack.pop();
+        if(!b){
+          throw "Unbalanced Brackets!";
+        }
+
+        while(b.type != "OrCharSetOpen"){
+          t.children.push(b);
+          b = stack.pop();
+
+          if(!b){
+            throw "Unbalanced Brackets!";
+          }
+
+          if(b.type == "OrGroupOpen" || b.type == "Group"){
+            throw "Syntax Error: No groups inside CharSets";
+          }
+        }
+        t.children.reverse();
+        stack.push(t);
+        return States.OrCharSetClose;
+      },
+      states: [States.OrChars, States.OrSpecial]
+    },
+    {
       re:"\\(",
       op: function(a, stack){
         var t = new tree();
@@ -146,7 +176,7 @@ module.exports = {
         stack.push(t);
         return States.GroupOpen;
       },
-      states: [States.Start, States.Head, States.CharSetClose, States.GroupOpen, States.GroupClose, States.Wildcard, States.Quant]
+      states: [States.Start, States.Head, States.CharSetClose, States.GroupOpen, States.GroupClose, States.Special, States.Wildcard, States.Quant]
     },
     {
       re:"\\(",
@@ -157,7 +187,7 @@ module.exports = {
         stack.push(t);
         return States.OrGroupOpen;
       },
-      states: [States.Or, States.OrChars, States.OrCharSetOpen, States.OrCharSetClose, States.OrSpecial, States.OrWildcard, States.OrQuant]
+      states: [States.Or, States.OrChars, States.OrGroupOpen, States.OrCharSetClose, States.OrSpecial, States.OrWildcard, States.OrQuant]
     },
     {
       re:"\\)",
@@ -300,7 +330,7 @@ module.exports = {
 
         return States.OrQuant;
       },
-      states: [States.OrCharSetClose, States.OrChar, States.OrSpecial, States.OrGroupClose, States.OrWildcard]
+      states: [States.OrCharSetClose, States.OrChars, States.OrSpecial, States.OrGroupClose, States.OrWildcard]
     },
     {
       re: "\\?",
@@ -331,7 +361,7 @@ module.exports = {
 
         return States.OrQuant;
       },
-      states: [States.OrCharSetClose, States.OrChar, States.OrSpecial, States.OrGroupClose, States.OrWildcard]
+      states: [States.OrCharSetClose, States.OrChars, States.OrSpecial, States.OrGroupClose, States.OrWildcard]
     },
     {
       re:"\\[ntrRsSdDfv\\[\\]\\(\\)]",
@@ -354,7 +384,7 @@ module.exports = {
         stack.push(t2);
         return States.OrSpecial;
       },
-      states: [States.Or, States.OrGroup, States.OrCharSetOpen, States.OrChars, States.OrSpecial, States.OrWildcard, States.OrQuant]
+      states: [States.Or, States.OrHead, States.OrGroupOpen, States.OrGroupClose, States.OrCharSetOpen, States.OrCharSetClose, States.OrChars, States.OrSpecial, States.OrWildcard, States.OrQuant]
     },
     {
       re: "\\^",
@@ -374,7 +404,9 @@ module.exports = {
         t.type = "Head";
         t.value = "^";
         var t2 = stack.pop();
-        t2.children.push(t);
+        var t3 = t2.children.pop();
+        t3.children.push(t);
+        t2.children.push(t3);
         stack.push(t2);
         return States.Or;
       },
@@ -402,7 +434,7 @@ module.exports = {
         stack.push(t2);
         return States.OrTail;
       },
-      states: [States.Or, States.OrChars, States.OrCharSetClose, States.OrSpecial, States.OrGroupClose, States.OrWildcard, States.OrQuant]
+      states: [States.Or, States.OrHead, States.OrChars, States.OrCharSetClose, States.OrSpecial, States.OrGroupClose, States.OrWildcard, States.OrQuant]
     },
     {
       re:"\\w|[!@#&*{}=,]",
@@ -413,7 +445,7 @@ module.exports = {
         stack.push(t);
         return States.Chars;
       },
-      states: [States.Start, States.Chars, States.CharSetOpen, States.CharSetClose, States.Special, States.GroupOpen, States.GroupClose, States.Wildcard, States.Quant]
+      states: [States.Start, States.Head, States.Chars, States.CharSetOpen, States.CharSetClose, States.Special, States.GroupOpen, States.GroupClose, States.Wildcard, States.Quant]
     },
     {
       re:"[\\w!@#&*{},=]",
@@ -428,7 +460,7 @@ module.exports = {
         stack.push(t2);
         return States.OrChars;
       },
-      states: [States.Or, States.OrChars, States.OrCharSetClose, States.OrSpecial, States.OrGroupClose, States.OrWildcard, States.Quant]
+      states: [States.Or, States.OrHead, States.OrChars, States.OrCharSetOpen, States.OrCharSetClose, States.OrSpecial, States.OrGroupOpen, States.OrGroupClose, States.OrWildcard, States.OrQuant]
     },
     {
       re:"\\.",
@@ -439,7 +471,7 @@ module.exports = {
         stack.push(t);
         return States.Wildcard;
       },
-      states: [States.Start, States.Chars, States.GroupOpen, States.GroupClose, States.CharSetOpen, States.CharSetClose, States.Special, States.Wildcard, States.Quant]
+      states: [States.Start, States.Head, States.Chars, States.GroupOpen, States.GroupClose, States.CharSetOpen, States.CharSetClose, States.Special, States.Wildcard, States.Quant]
     },
     {
       re:"\\.",
@@ -452,7 +484,7 @@ module.exports = {
         stack.push(t2);
         return States.OrWildcard;
       },
-      states: [States.OrChars, States.OrGroupClose, States.OrSpecial, States.OrWildcard, States.OrQuant]
+      states: [States.OrChars, States.OrHead, States.OrGroupOpen, States.OrGroupClose, States.OrCharSetOpen, States.OrCharSetClose, States.OrSpecial, States.OrWildcard, States.OrQuant]
     }
   ]
 };
