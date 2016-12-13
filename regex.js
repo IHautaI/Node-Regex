@@ -29,7 +29,7 @@ module.exports = {
 
         return States.End;
       },
-      states: [States.Start, States.Chars, States.OrChars, States.Special, States.OrSpecial, States.GroupClose, States.OrGroupClose, States.CharSetClose, States.OrCharSetClose, States.Or, States.Tail, States.OrTail, States.Wildcard, States.Quant, States.OrQuant]
+      states: [States.Start, States.Chars, States.OrChars, States.Special, States.OrSpecial, States.GroupClose, States.OrGroupClose, States.CharSetClose, States.OrCharSetClose, States.Tail, States.OrTail, States.Wildcard, States.OrWildcard, States.Quant, States.OrQuant]
     },
     {
       re:"\\|", // Anything found while in States.Or state is added as a child unless it closes containing group
@@ -430,7 +430,9 @@ module.exports = {
         t.type = "Tail";
         t.value = "$";
         var t2 = stack.pop();
-        t2.children.push(t);
+        var t3 = t2.children.pop();
+        t3.children.push(t);
+        t2.children.push(t3);
         stack.push(t2);
         return States.OrTail;
       },
