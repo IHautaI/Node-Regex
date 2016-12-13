@@ -74,9 +74,9 @@ module.exports = {
       }
     },
     {
-      re: "[a-zA-Z0-9]+",
+      re: "[\\w]",
       wrap: function(match){
-        return new ele.Element("Chars", match);
+        return new ele.Element("Char", match);
       }
     },
   ]

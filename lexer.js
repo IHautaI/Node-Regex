@@ -1,13 +1,5 @@
-// Lexer takes config
-// applies it to String input
-// config is a series of Strings
-// that will be used as regex
-// with "^" prepended
-// longest match wins
-// Match is chopped off String,
-// wrapped in Element with type
-
 module.exports = {
+
   lexer: function(){
     this.actions = [];
 
@@ -47,9 +39,10 @@ module.exports = {
     this.process = function(str, callback){
       this.str = str;
       var x = "";
-      while(this.str){
+      while(this.str.length > 0){
         x = this.best_match();
         if(x){
+          console.log("Emitting:", x[0].wrap(x[1]).type);
           callback(x[0].wrap(x[1]));
         }
       }

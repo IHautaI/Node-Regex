@@ -6,7 +6,11 @@ var print_tree = function(t, str){
     }
     str += ")";
   } else {
-    str += t.value.toString();
+    if(t.value){
+    str += t.value;
+  } else {
+    str += t.type;
+  }
   }
 
   return str;
@@ -19,7 +23,7 @@ module.exports = {
     this.value = null;
     this.toString = function(){
       if(this.children[0]){
-        return "(" + this.value + "| " + this.children.map(function(x){return x.toString();}) + " )";
+        return "(" + this.type + "| " + this.children.map(function(x){return x.toString();}) + " )";
       } else {
         return this.value;
       }

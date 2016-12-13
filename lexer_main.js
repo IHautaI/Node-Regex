@@ -23,10 +23,10 @@ lexer.register_all(conf.conf);
 new DataReader (filename, {encoding: "utf-8"})
   .on("line", function(line, nextByteOffset){
     console.log(line);
-    console.log("");
+    // console.log("");
     lexer.process(line, conf.print);
-    console.log("");
-    console.log("----------------");
-    console.log("");
+    // console.log("");
+    // console.log("----------------");
+    // console.log("");
   })
   .read();
