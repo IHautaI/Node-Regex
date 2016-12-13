@@ -2,3 +2,4 @@
 /([aoeu]|ab)+/
 /(([aoeu]+)?ab|ab+)*/
 /^ab|^abc|^ac/
+/^ab|ab+$/
