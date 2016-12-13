@@ -62,7 +62,7 @@ module.exports = {
       }
     },
     {
-      re: "{\d(?:,\d?)}",
+      re: "\\{\\d+(?:,\\s*\\d+)\\}",
       wrap: function(match){
         return new ele.Element("Bound", match);
       }

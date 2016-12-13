@@ -279,7 +279,7 @@ module.exports = {
     {
       seqtype: ["Bound"],
       op: function(seq, stack){
-        var t = tree();
+        var t = new tree();
         t.type = "Bound";
         t.value = seq[0].match;
 
