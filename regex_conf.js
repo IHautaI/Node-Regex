@@ -252,7 +252,7 @@ module.exports = {
       seqtype: ["Quant"],
       op: function(seq, stack){
         var t = new tree();
-        t.type = seq[0].match;
+        t.type = "Quant";
         t.value = seq[0].match;
 
         var o = stack.pop();

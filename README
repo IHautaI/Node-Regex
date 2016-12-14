@@ -1,0 +1,2 @@
+run test:
+node main.js regex_conf.js lexer_conf.js tests

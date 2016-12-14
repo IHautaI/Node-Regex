@@ -1,10 +1,22 @@
-var print_tree = function(t, str){
+var print_tree = function(t, str, sep){
   if(t.children[0] != null){
-    str += "(" + t.type + " ";
-    for(idx in t.children){
-      str += print_tree(t.children[idx], "") + " ";
+    if(t.type == "Or"){
+      sep = "|";
     }
-    str += ")";
+    if(t.type == "Group"){
+      str += "(";
+    }
+
+    str += t.children.map(function(x){return print_tree(x, "", "");}).join(sep);
+
+    if(t.type == "Group"){
+      str += ")";
+    }
+
+    if(t.type == "Bound" || t.type == "Quant"){
+      str += t.value;
+    }
+
   } else {
     if(t.value){
     str += t.value;
@@ -31,9 +43,6 @@ module.exports = {
   },
 
   print: function(t){
-    console.log(print_tree(t, ""));
-    console.log("");
-    console.log("-----------------------");
-    console.log("");
+    console.log("/" + print_tree(t, "", "") + "/");
   }
 };

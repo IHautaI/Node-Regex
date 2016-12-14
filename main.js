@@ -3,6 +3,8 @@ if(process.argv.length < 4){
   process.exit(1);
 }
 
+const path = require("path");
+
 var lexer_file = process.argv[2], parser_file = process.argv[3], filenames = process.argv.slice(4, process.argv.length);
 
 var fs = require('fs');
@@ -18,7 +20,14 @@ fs.stat(lexer_file, function(err, stats){
   if(err) throw err;
 });
 
-var DataReader = require("buffered-reader").DataReader;
+if(path.dirname(lexer_file) == "."){
+  lexer_file = "./" + lexer_file;
+}
+if(path.dirname(parser_file) == "."){
+  parser_file = "./" + parser_file;
+}
+
+const DataReader = require("buffered-reader").DataReader;
 
 var lex = require("./lexer.js");
 var lex_conf = require(lexer_file);
@@ -42,20 +51,15 @@ console.log("");
 console.log("---------------");
 console.log("");
 
-idx = 0;
-var run = function(idx){
-new DataReader(filenames[idx], {encoding: "utf-8"})
-  .on("line", function(line, nextByteOffset){
-    // console.log(line);
-    lexer.process(line, function(x){parser.process(x)});
-  })
-  .on("end", function(){
-    parser.finish(print);
-    if(idx < filenames.length - 1){
-      run(idx + 1);
-    }
-  })
-  .read();
-};
-
-run(idx);
+for(idx in filenames){
+  new DataReader(filenames[idx], {encoding: "utf-8"})
+    .on("line", function(line, nextByteOffset){
+      lexer.process(line, function(x){parser.process(x)});
+      parser.finish(print);
+      console.log(line);
+      console.log("");
+      console.log("---------------");
+      console.log("");      
+    })
+    .read();
+}
