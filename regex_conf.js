@@ -16,7 +16,7 @@ var test_or = function(t, stack){
 
   } else {
     // not an Or. Check if we should concatenate
-    if(o && o.type != "GroupOpen" && (t.type == "Char" || t.type == "CharSet" || t.type == "Special" || t.type == "Wildcard" || t.type == "Group")){
+    if(o && o.type != "GroupOpen" && (t.type == "Char" || t.type == "CharSet" || t.type == "EscapeChar" || t.type == "Wildcard" || t.type == "Group")){
       if(o.type == "Cat"){
         o.children.push(t);
         stack.push(o);
@@ -236,10 +236,10 @@ module.exports = {
       states: AllBoundaries
     },
     {
-      seqtype: ["Special"],
+      seqtype: ["EscapeChar"],
       op: function(seq, stack){
         var t = new tree();
-        t.type = "Special";
+        t.type = "EscapeChar";
         t.value = seq[0].match;
 
         test_or(t, stack);
