@@ -14,6 +14,7 @@ module.exports = {
       for(idx in conf){
         this.register(conf[idx]);
       }
+      // console.log(this.actions);
     };
 
     this.best_match = function(){
@@ -30,6 +31,7 @@ module.exports = {
 
       if(match && best){
         this.str = this.str.slice(match.length, this.str.length);
+        // console.log(this.str);
         return [best, match];
       } else {
         throw "No match found: " + this.str.slice(0, 20);

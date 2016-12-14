@@ -14,7 +14,7 @@ module.exports = {
       }
     },
     {
-      re: "\\[.+\\]",
+      re: "\\[[^\\]]+\\]",
       wrap: function(match){
         return new ele.Element("CharSet", match);
       }
@@ -62,7 +62,7 @@ module.exports = {
       }
     },
     {
-      re: "\\{\\d+(?:,\\s*\\d+)\\}",
+      re: "\\{\\d+(?:\\s*,\\s*\\d+)\\}",
       wrap: function(match){
         return new ele.Element("Bound", match);
       }

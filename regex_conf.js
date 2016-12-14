@@ -263,6 +263,13 @@ module.exports = {
           cat.children.push(t);
           o.children.push(cat);
           stack.push(o);
+        } else if (o && o.type == "Cat") {
+          var t2 = o.children.pop();
+          t.children.push(t2);
+          o.children.push(t);
+          stack.push(o);
+
+          return States.Quant;
         } else {
           if(!o){
             throw "Quantifier has no object!";
@@ -291,6 +298,14 @@ module.exports = {
           cat.children.push(t);
           o.children.push(cat);
           stack.push(o);
+        } else if (o && o.type == "Cat"){
+          var t2 = o.children.pop();
+          t.children.push(t2);
+          o.children.push(t);
+          stack.push(o);
+
+          return States.Bound;
+
         } else {
           if(!o){
             throw "Quantifier has no object!";
