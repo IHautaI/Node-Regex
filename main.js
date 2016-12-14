@@ -42,14 +42,20 @@ console.log("");
 console.log("---------------");
 console.log("");
 
-for(idx in filenames){
-  new DataReader(filenames[idx], {encoding: "utf-8"})
-    .on("line", function(line, nextByteOffset){
-      // console.log(line);
-      lexer.process(line, function(x){parser.process(x)});
-    })
-    .on("end", function(){
-      parser.finish(print);
-    })
-    .read();
-}
+idx = 0;
+var run = function(idx){
+new DataReader(filenames[idx], {encoding: "utf-8"})
+  .on("line", function(line, nextByteOffset){
+    // console.log(line);
+    lexer.process(line, function(x){parser.process(x)});
+  })
+  .on("end", function(){
+    parser.finish(print);
+    if(idx < filenames.length - 1){
+      run(idx + 1);
+    }
+  })
+  .read();
+};
+
+run(idx);

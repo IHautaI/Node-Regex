@@ -67,6 +67,7 @@ module.exports = {
 
     this.finish = function(callback){
       callback(this.stack.pop());
+      this.state = this.begin;
     };
   }
 };
